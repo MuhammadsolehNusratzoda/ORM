@@ -1,13 +1,10 @@
-namespace efcore_intro;
+using efcore_intro;
 
 public interface IProductService
 {
-    Task<ApiResponse<string>> AddProductAsync(Product product);
+    Task<ApiResponse<string>> AddProductAsync(CreateProductDTO dto);
     Task<ApiResponse<string>> DeleteProductAsync(int id);
-    Task<ApiResponse<Product>> GetProductAsync(int id);
-    Task<ApiResponse<List<Product>>> GetProductsAsync();
-    Task<ApiResponse<string>> UpdateProductAsync(Product product);
-
-
-
+    Task<ApiResponse<ProductDTO>> GetProductAsync(int id);
+    Task<ApiResponse<List<ProductDTO>>> GetProductsAsync();
+    Task<ApiResponse<string>> UpdateProductAsync(UpdateProductDTO dto);
 }

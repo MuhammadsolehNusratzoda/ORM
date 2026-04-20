@@ -1,8 +1,10 @@
+using efcore_intro;
+
 public interface IUserService
 {
-    Task<ApiResponse<string>> AddUserAsync(User user);
-    Task<ApiResponse<List<User>>> GetUsersAsync();
-    Task<ApiResponse<User>> GetUserAsync(int id);
-    Task<ApiResponse<string>> UpdateUserAsync(User user);
+    Task<ApiResponse<string>> AddUserAsync(CreateUserDTO dto);
     Task<ApiResponse<string>> DeleteUserAsync(int id);
+    Task<ApiResponse<UserDTO>> GetUserAsync(int id);
+    Task<ApiResponse<List<UserDTO>>> GetUsersAsync();
+    Task<ApiResponse<string>> UpdateUserAsync(UpdateUserDTO dto);
 }

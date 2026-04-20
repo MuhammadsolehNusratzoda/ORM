@@ -4,37 +4,51 @@ namespace efcore_intro;
 
 [ApiController]
 [Route("api/[controller]")]
-public class CategoryController(ICategoryService categoryService): ControllerBase
+public class CategoryController(ICategoryService categoryService) : ControllerBase
 {
     private readonly ICategoryService service = categoryService;
-    
+
     [HttpPost]
-    public async Task<ApiResponse<string>> AddCategoryAsync(Category category)
+    public async Task<IActionResult> Add([FromBody] CreateCategoryDTO dto)
     {
-        return await service.AddCategoryAsync(category);
+        var result = await service.AddCategoryAsync(dto);
+        return StatusCode((int)result.StatusCode, result);
     }
 
     [HttpGet]
-    public async Task<ApiResponse<List<Category>>> GetCategoriesAsync()
+    public async Task<IActionResult> GetAll()
     {
-        return await service.GetCategoriesAsync();
+        var result = await service.GetCategoriesAsync();
+        return Ok(result);
     }
 
     [HttpGet("{id:int}")]
-    public async Task<ApiResponse<Category>> GetCategoryAsync(int id)
+    public async Task<IActionResult> Get(int id)
     {
-        return await service.GetCategoryAsync(id);
+        var result = await service.GetCategoryAsync(id);
+        if (result.StatusCode == System.Net.HttpStatusCode.NotFound)
+            return NotFound(result);
+
+        return Ok(result);
     }
 
     [HttpPut]
-    public async Task<ApiResponse<string>> UpdateCategoryAsync(Category category)
+    public async Task<IActionResult> Update([FromBody] UpdateCategoryDTO dto)
     {
-        return await service.UpdateCategoryAsync(category);
+        var result = await service.UpdateCategoryAsync(dto);
+        if (result.StatusCode == System.Net.HttpStatusCode.NotFound)
+            return NotFound(result);
+
+        return Ok(result);
     }
 
     [HttpDelete("{id:int}")]
-    public async Task<ApiResponse<string>> DeleteCategoryAsync(int id)
+    public async Task<IActionResult> Delete(int id)
     {
-        return await service.DeleteCategoryAsync(id);
+        var result = await service.DeleteCategoryAsync(id);
+        if (result.StatusCode == System.Net.HttpStatusCode.NotFound)
+            return NotFound(result);
+
+        return Ok(result);
     }
 }

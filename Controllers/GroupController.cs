@@ -1,41 +1,57 @@
-using efcore_intro.Entities;
 using Microsoft.AspNetCore.Mvc;
 
 namespace efcore_intro;
 
 [ApiController]
 [Route("api/[controller]")]
-public class GroupController(IGroupService groupService): ControllerBase
+public class GroupController(IGroupService groupService) : ControllerBase
 {
     private readonly IGroupService service = groupService;
-    
+
     [HttpPost]
-    public async Task<ApiResponse<string>> AddGroupAsync(Group group)
+    public async Task<IActionResult> Add([FromBody] CreateGroupDTO dto)
     {
-        return await service.AddGroupAsync(group);
+        var result = await service.AddGroupAsync(dto);
+        return StatusCode((int)result.StatusCode, result);
     }
 
     [HttpGet]
-    public async Task<ApiResponse<List<Group>>> GetGroupsAsync()
+    public async Task<IActionResult> GetAll()
     {
-        return await service.GetGroupsAsync();
+        var result = await service.GetGroupsAsync();
+        return Ok(result);
     }
 
     [HttpGet("{id:int}")]
-    public async Task<ApiResponse<Group>> GetGroupAsync(int id)
+    public async Task<IActionResult> Get(int id)
     {
-        return await service.GetGroupAsync(id);
+        var result = await service.GetGroupAsync(id);
+
+        if (result.StatusCode == System.Net.HttpStatusCode.NotFound)
+            return NotFound(result);
+
+        return Ok(result);
     }
 
     [HttpPut]
-    public async Task<ApiResponse<string>> UpdateGroupAsync(Group group)
+    public async Task<IActionResult> Update([FromBody] UpdateGroupDTO dto)
     {
-        return await service.UpdateGroupAsync(group);
+        var result = await service.UpdateGroupAsync(dto);
+
+        if (result.StatusCode == System.Net.HttpStatusCode.NotFound)
+            return NotFound(result);
+
+        return Ok(result);
     }
 
     [HttpDelete("{id:int}")]
-    public async Task<ApiResponse<string>> DeleteGroupAsync(int id)
+    public async Task<IActionResult> Delete(int id)
     {
-        return await service.DeleteGroupAsync(id);
+        var result = await service.DeleteGroupAsync(id);
+
+        if (result.StatusCode == System.Net.HttpStatusCode.NotFound)
+            return NotFound(result);
+
+        return Ok(result);
     }
 }

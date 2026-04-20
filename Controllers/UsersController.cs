@@ -1,39 +1,54 @@
 using Microsoft.AspNetCore.Mvc;
 
+namespace efcore_intro;
+
 [ApiController]
-[Route("api/[Controller]")]
-public class UsersController(IUserService userService): ControllerBase
+[Route("api/[controller]")]
+public class UserController(IUserService userService) : ControllerBase
 {
     private readonly IUserService service = userService;
-    
+
     [HttpPost]
-    public async Task<ApiResponse<string>> AddUserAsync(User user)
+    public async Task<IActionResult> Add([FromBody] CreateUserDTO dto)
     {
-        return await service.AddUserAsync(user);
+        var result = await service.AddUserAsync(dto);
+        return StatusCode((int)result.StatusCode, result);
     }
 
     [HttpGet]
-    public async Task<ApiResponse<List<User>>> GetUsersAsync()
+    public async Task<IActionResult> GetAll()
     {
-        return await service.GetUsersAsync();
+        var result = await service.GetUsersAsync();
+        return Ok(result);
     }
 
     [HttpGet("{id:int}")]
-    public async Task<ApiResponse<User>> GetUserAsync(int id)
+    public async Task<IActionResult> Get(int id)
     {
-        return await service.GetUserAsync(id);
+        var result = await service.GetUserAsync(id);
+        if (result.StatusCode == System.Net.HttpStatusCode.NotFound)
+            return NotFound(result);
+
+        return Ok(result);
     }
 
     [HttpPut]
-    public async Task<ApiResponse<string>> UpdateUserAsync(User user)
+    public async Task<IActionResult> Update([FromBody] UpdateUserDTO dto)
     {
-        return await service.UpdateUserAsync(user);
+        var result = await service.UpdateUserAsync(dto);
+        if (result.StatusCode == System.Net.HttpStatusCode.NotFound)
+            return NotFound(result);
+
+        return Ok(result);
     }
 
     [HttpDelete("{id:int}")]
-    public async Task<ApiResponse<string>> DeleteUserAsync(int id)
+    public async Task<IActionResult> Delete(int id)
     {
-        return await service.DeleteUserAsync(id);
-    }
+        var result = await service.DeleteUserAsync(id);
+        if (result.StatusCode == System.Net.HttpStatusCode.NotFound)
+            return NotFound(result);
 
+        return Ok(result);
+    }
 }

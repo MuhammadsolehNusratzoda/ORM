@@ -16,6 +16,7 @@ builder.Services.AddScoped<IStudentService, StudentService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IGroupService, GroupService>();
+
 var app = builder.Build();
 
 using var scope = app.Services.CreateScope();
@@ -23,7 +24,6 @@ var services = scope.ServiceProvider;
 var context = services.GetRequiredService<ApplicationDbContext>();
 context.Database.Migrate();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

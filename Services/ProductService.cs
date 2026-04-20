@@ -1,5 +1,4 @@
 using System.Net;
-using efcore_intro.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace efcore_intro;
@@ -7,47 +6,92 @@ namespace efcore_intro;
 public class ProductService(ApplicationDbContext dbContext) : IProductService
 {
     private readonly ApplicationDbContext context = dbContext;
-    public async Task<ApiResponse<string>> AddProductAsync(Product product)
+
+    public async Task<ApiResponse<string>> AddProductAsync(CreateProductDTO dto)
     {
+        var product = new Product
+        {
+            Name = dto.Name,
+            Description = dto.Description,
+            Price = dto.Price,
+            CategoryId = dto.CategoryId
+        };
+
         await context.Products.AddAsync(product);
-        var r = await context.SaveChangesAsync();
+        await context.SaveChangesAsync();
+
         return new ApiResponse<string>(HttpStatusCode.OK, "Added successfully!");
     }
 
     public async Task<ApiResponse<string>> DeleteProductAsync(int id)
     {
-        var Product = await context.Products.FindAsync(id) ?? new();
-        context.Products.Remove(Product);
+        var product = await context.Products.FindAsync(id);
+
+        if (product == null)
+        {
+            return new ApiResponse<string>(HttpStatusCode.NotFound, "Product not found");
+        }
+
+        context.Products.Remove(product);
         await context.SaveChangesAsync();
+
         return new ApiResponse<string>(HttpStatusCode.OK, "Deleted successfully!");
     }
 
-    public async Task<ApiResponse<Product>> GetProductAsync(int id)
+    public async Task<ApiResponse<ProductDTO>> GetProductAsync(int id)
     {
-        var product = await context.Products.FirstOrDefaultAsync<Product>(x => x.Id == id);
-        return new ApiResponse<Product>(HttpStatusCode.OK, "Product with given id", product ?? new());
+        var product = await context.Products
+            .Where(x => x.Id == id)
+            .Select(x => new ProductDTO
+            {
+                Id = x.Id,
+                Name = x.Name,
+                Description = x.Description,
+                Price = x.Price,
+                CategoryId = x.CategoryId
+            })
+            .FirstOrDefaultAsync();
+
+        if (product == null)
+        {
+            return new ApiResponse<ProductDTO>(HttpStatusCode.NotFound, "Product not found");
+        }
+
+        return new ApiResponse<ProductDTO>(HttpStatusCode.OK, "Product found", product);
     }
 
-    public async Task<ApiResponse<List<Product>>> GetProductsAsync()
+    public async Task<ApiResponse<List<ProductDTO>>> GetProductsAsync()
     {
-        var products = await context.Products.ToListAsync();
-        return new ApiResponse<List<Product>>(HttpStatusCode.OK, "list of Products", products);
+        var products = await context.Products
+            .Select(x => new ProductDTO
+            {
+                Id = x.Id,
+                Name = x.Name,
+                Description = x.Description,
+                Price = x.Price,
+                CategoryId = x.CategoryId
+            })
+            .ToListAsync();
+
+        return new ApiResponse<List<ProductDTO>>(HttpStatusCode.OK, "List of products", products);
     }
 
-    public async Task<ApiResponse<string>> UpdateProductAsync(Product product)
+    public async Task<ApiResponse<string>> UpdateProductAsync(UpdateProductDTO dto)
     {
-        var s = await context.Products.FindAsync(product.Id);
-        if (s == null)
+        var product = await context.Products.FindAsync(dto.Id);
+
+        if (product == null)
         {
             return new ApiResponse<string>(HttpStatusCode.NotFound, "Product not found for update");
         }
-        else
-        {
-            s.Name = product.Name;
-            s.Description = product.Description;
-            s.Price = product.Price;
-            await context.SaveChangesAsync();
-            return new ApiResponse<string>(HttpStatusCode.OK, "updated successfully");
-        }
+
+        product.Name = dto.Name;
+        product.Description = dto.Description;
+        product.Price = dto.Price;
+        product.CategoryId = dto.CategoryId;
+
+        await context.SaveChangesAsync();
+
+        return new ApiResponse<string>(HttpStatusCode.OK, "Updated successfully");
     }
 }
